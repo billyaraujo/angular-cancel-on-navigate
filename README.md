@@ -10,7 +10,7 @@ Prerequisites: an existing AngularJS project of course.
 Using Bower:
 
 ```sh
-bower install -S angular-cancel-on-navigate
+bower install -S angular-cancel-on-navigate-m
 ```
 
 Or, manually download `build/angularCancelOnNavigateModule.js` (or the
