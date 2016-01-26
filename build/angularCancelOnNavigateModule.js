@@ -1,24 +1,24 @@
 /**
  * angular-cancel-on-navigate - AngularJS module that cancels HTTP requests on location change (navigation)
- * @version v0.1.0
- * @link https://github.com/AlbertBrand/angular-cancel-on-navigate
+ * @version v0.1.1
+ * @link https://github.com/billyaraujo/angular-cancel-on-navigate
  * @license MIT
  */
 angular
   .module('angularCancelOnNavigateModule', [])
-  .config(function($httpProvider) {
+  .config(['$httpProvider', function($httpProvider) {
     $httpProvider.interceptors.push('HttpRequestTimeoutInterceptor');
-  })
-  .run(function ($rootScope, HttpPendingRequestsService) {
+  }])
+  .run(['$rootScope', 'HttpPendingRequestsService', function ($rootScope, HttpPendingRequestsService) {
     $rootScope.$on('$locationChangeSuccess', function (event, newUrl, oldUrl) {
       if (newUrl != oldUrl) {
         HttpPendingRequestsService.cancelAll();
       }
-    })
-  });
+    });
+  }]);
 
 angular.module('angularCancelOnNavigateModule')
-  .service('HttpPendingRequestsService', function ($q) {
+  .service('HttpPendingRequestsService', ['$q', function ($q) {
     var cancelPromises = [];
 
     function newTimeout() {
@@ -39,24 +39,21 @@ angular.module('angularCancelOnNavigateModule')
       newTimeout: newTimeout,
       cancelAll: cancelAll
     };
-  });
+  }]);
 
 angular.module('angularCancelOnNavigateModule')
-  .factory('HttpRequestTimeoutInterceptor', function ($q, HttpPendingRequestsService) {
+  .factory('HttpRequestTimeoutInterceptor', ['$q', 'HttpPendingRequestsService', function ($q, HttpPendingRequestsService) {
     return {
       request: function (config) {
         config = config || {};
-        if (config.timeout === undefined && !config.noCancelOnRouteChange) {
+        if (config.timeout === undefined && config.cancelOnRouteChange) {
           config.timeout = HttpPendingRequestsService.newTimeout();
         }
         return config;
       },
 
       responseError: function (response) {
-        if (response.config.timeout.isGloballyCancelled) {
-          return $q.defer().promise;
-        }
         return $q.reject(response);
       }
     };
-  });
+  }]);
